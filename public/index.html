@@ -3,449 +3,96 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎓 Revisor Académico Q1 - Safety Management</title>
-  
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+  <title>🎓 Revisor Académico Q1</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    :root {
-      --primary: #667eea;
-      --primary-dark: #764ba2;
-      --secondary: #f093fb;
-      --success: #13c2c2;
-      --warning: #faad14;
-      --error: #f5222d;
-      --text: #262c35;
-      --text-light: #8c8c8c;
-      --bg: #ffffff;
-      --bg-light: #f5f7fa;
-      --border: #e8e8e8;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-      color: var(--text);
-      line-height: 1.6;
-      min-height: 100vh;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: Arial, sans-serif; 
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #262c35;
       padding: 20px;
+      min-height: 100vh;
     }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    header {
-      background: var(--bg);
-      padding: 30px;
+    .container { max-width: 1200px; margin: 0 auto; }
+    header { 
+      background: white; 
+      padding: 30px; 
       border-radius: 12px 12px 0 0;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-      border-bottom: 3px solid var(--primary);
+      border-bottom: 3px solid #667eea;
     }
-
-    header h1 {
-      font-size: 2.2em;
-      margin-bottom: 8px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    header p {
-      color: var(--text-light);
-      font-size: 0.95em;
-    }
-
-    .main {
-      background: var(--bg);
-      padding: 40px;
+    h1 { color: #667eea; margin-bottom: 10px; }
+    .main { 
+      background: white; 
+      padding: 30px; 
       display: grid;
       grid-template-columns: 350px 1fr;
       gap: 30px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     }
-
-    .sidebar {
-      border-right: 1px solid var(--border);
-      padding-right: 30px;
-    }
-
-    .sidebar h3 {
-      color: var(--primary);
-      margin-bottom: 20px;
-      font-size: 1.2em;
-    }
-
-    .dropzone {
-      border: 2px dashed var(--primary);
-      border-radius: 12px;
-      padding: 30px 20px;
+    .sidebar { border-right: 1px solid #e8e8e8; padding-right: 30px; }
+    .dropzone { 
+      border: 2px dashed #667eea; 
+      border-radius: 12px; 
+      padding: 30px; 
       text-align: center;
       cursor: pointer;
-      transition: all 0.3s ease;
-      background: var(--bg-light);
+      background: #f5f7fa;
     }
-
-    .dropzone:hover {
-      border-color: var(--primary-dark);
-      background: #f0f4ff;
-      transform: translateY(-2px);
-    }
-
-    .dropzone-icon {
-      font-size: 2.5em;
-      margin-bottom: 10px;
-    }
-
-    .file-input {
-      display: none;
-    }
-
-    .file-selected {
-      background: #e6f7ff;
-      border: 1px solid var(--primary);
-      border-radius: 8px;
+    button { 
+      width: 100%;
       padding: 12px;
       margin-top: 15px;
-      display: none;
-    }
-
-    .file-selected.active {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    button {
-      padding: 12px 16px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
       border: none;
       border-radius: 8px;
-      font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 0.9em;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 15px;
+      font-weight: 600;
     }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-    }
-
-    .btn-primary:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .progress-container {
-      display: none;
-      margin-top: 20px;
-      background: var(--bg-light);
-      padding: 15px;
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    textarea { 
+      width: 100%; 
+      height: 400px; 
+      padding: 15px; 
+      border: 1px solid #e8e8e8;
       border-radius: 8px;
+      font-family: monospace;
     }
-
-    .progress-container.active {
-      display: block;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 6px;
-      background: var(--border);
-      border-radius: 3px;
-      overflow: hidden;
-      margin-bottom: 10px;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--primary), var(--secondary));
-      width: 0%;
-      animation: progress-animation 2s ease-in-out infinite;
-    }
-
-    @keyframes progress-animation {
-      0%, 100% { width: 0%; }
-      50% { width: 100%; }
-    }
-
-    .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid var(--border);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .content {
-      display: none;
-    }
-
-    .content.active {
-      display: flex;
-      flex-direction: column;
-      gap: 30px;
-    }
-
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-    }
-
-    .metric {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    .content { display: none; }
+    .content.active { display: block; }
+    .metric { 
+      background: linear-gradient(135deg, #667eea, #764ba2);
       color: white;
       padding: 20px;
       border-radius: 10px;
       text-align: center;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      margin-bottom: 20px;
     }
-
-    .metric-value {
-      font-size: 2em;
-      font-weight: 700;
-      margin: 8px 0;
-    }
-
-    .metric-label {
-      font-size: 0.85em;
-      opacity: 0.9;
-    }
-
-    .tabs {
-      display: flex;
-      gap: 10px;
-      border-bottom: 2px solid var(--border);
-      overflow-x: auto;
-    }
-
-    .tab {
-      background: none;
-      border: none;
-      padding: 12px 16px;
-      color: var(--text-light);
+    .tabs { display: flex; gap: 10px; border-bottom: 2px solid #e8e8e8; margin-bottom: 20px; }
+    .tab { 
+      background: none; 
+      border: none; 
+      padding: 12px; 
       cursor: pointer;
+      color: #8c8c8c;
       border-bottom: 3px solid transparent;
-      transition: all 0.3s;
-      font-weight: 500;
-      white-space: nowrap;
-      font-size: 0.95em;
-      width: auto;
-      margin: 0;
     }
-
-    .tab:hover {
-      color: var(--primary);
+    .tab.active { 
+      color: #667eea; 
+      border-bottom-color: #667eea;
     }
-
-    .tab.active {
-      color: var(--primary);
-      border-bottom-color: var(--primary);
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    .historial-container {
-      background: var(--bg-light);
-      border-radius: 8px;
-      max-height: 600px;
-      overflow-y: auto;
-    }
-
-    .iteration-card {
-      border-left: 4px solid var(--primary);
-      padding: 20px;
-      background: white;
-      border-bottom: 1px solid var(--border);
-      transition: all 0.3s;
-    }
-
-    .iteration-card:hover {
-      background: var(--bg-light);
-    }
-
-    .iteration-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .iteration-title {
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .iteration-badge {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-size: 0.8em;
-      font-weight: 600;
-    }
-
-    .issue {
-      padding: 12px;
-      border-radius: 6px;
-      border-left: 4px solid;
-      font-size: 0.9em;
-      margin-top: 10px;
-    }
-
-    .issue.bloqueadora {
-      border-left-color: #f5222d;
-      background: #fff1f0;
-    }
-
-    .issue.critica {
-      border-left-color: #faad14;
-      background: #fffbe6;
-    }
-
-    textarea {
-      width: 100%;
-      height: 400px;
-      padding: 15px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.9em;
-      line-height: 1.6;
-      resize: vertical;
-      color: var(--text);
-    }
-
-    textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .download-section {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-      padding: 25px;
-      border-radius: 8px;
-    }
-
-    .download-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 10px;
-      margin-top: 15px;
-    }
-
-    .download-grid button {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      margin: 0;
-    }
-
-    .download-grid button:hover:not(:disabled) {
-      background: white;
-      color: var(--primary);
-    }
-
-    .alert {
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      display: none;
-      border-left: 4px solid;
-    }
-
-    .alert.active {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-    }
-
-    .alert-success {
-      background: #f6ffed;
-      border-left-color: var(--success);
-      color: #274e2b;
-    }
-
-    .alert-error {
-      background: #fff1f0;
-      border-left-color: var(--error);
-      color: #58181c;
-    }
-
-    footer {
-      background: var(--bg);
-      padding: 20px 30px;
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    footer { 
+      background: white; 
+      padding: 20px; 
+      text-align: center; 
       border-radius: 0 0 12px 12px;
-      text-align: center;
-      color: var(--text-light);
-      font-size: 0.9em;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      color: #8c8c8c;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
-
-    @media (max-width: 1200px) {
-      .main {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-
-      .sidebar {
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-        padding-right: 0;
-        padding-bottom: 20px;
-      }
-    }
-
-    @media (max-width: 768px) {
-      header {
-        padding: 20px;
-      }
-
-      header h1 {
-        font-size: 1.5em;
-      }
-
-      .main {
-        padding: 20px;
-      }
-
-      textarea {
-        height: 250px;
-      }
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; }
+      .sidebar { border-right: none; border-bottom: 1px solid #e8e8e8; padding-right: 0; }
     }
   </style>
 </head>
@@ -453,128 +100,76 @@
   <div class="container">
     <header>
       <h1>🎓 Revisor Académico Q1</h1>
-      <p>Motor: ChatGPT Web | Dominio: Safety Management, HRO, Risk Governance</p>
+      <p>Safety Management • HRO • Risk Governance</p>
     </header>
 
     <div class="main">
-      <aside class="sidebar">
-        <h3><i class="fas fa-file-upload"></i> Cargar Documento</h3>
-
-        <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
-          <div class="dropzone-icon">📄</div>
+      <div class="sidebar">
+        <h3>Cargar Documento</h3>
+        <div class="dropzone" onclick="document.getElementById('fileInput').click()">
+          <div style="font-size: 2em; margin-bottom: 10px;">📄</div>
           <div>Selecciona un archivo</div>
           <small>Max. 10 MB</small>
         </div>
+        <input type="file" id="fileInput" accept=".docx,.md,.txt" style="display: none;">
+        <div id="fileSelected" style="background: #e6f7ff; padding: 10px; border-radius: 8px; margin-top: 15px; display: none;">
+          <strong id="fileName"></strong>
+          <small id="fileSize" style="display: block; color: #8c8c8c;"></small>
+        </div>
+        <button id="btnRevisar" onclick="iniciarRevision()" disabled>Iniciar Revisión</button>
+        <div id="progreso" style="display: none; margin-top: 15px; text-align: center;">
+          <div style="color: #667eea; font-weight: 600;">⏳ Revisando...</div>
+        </div>
+      </div>
 
-        <input type="file" id="fileInput" class="file-input" accept=".docx,.md,.txt">
-
-        <div class="file-selected" id="fileSelected">
-          <div>📄</div>
-          <div>
-            <div style="font-weight: 600;" id="fileName"></div>
-            <small id="fileSize"></small>
-          </div>
-          <button onclick="limpiarArchivo()" style="width: 30px; padding: 5px; margin: 0;">✕</button>
+      <div id="content" class="content">
+        <div class="metric">
+          <div style="font-size: 2em; font-weight: 700;" id="metricPuntaje">-</div>
+          <div style="opacity: 0.9;">Puntaje: <span id="puntaje">-</span>/100 | Iteraciones: <span id="iter">-</span></div>
         </div>
 
-        <button class="btn-primary" id="btnRevisar" onclick="iniciarRevision()" disabled>
-          <i class="fas fa-rocket"></i> Iniciar Revisión
-        </button>
-
-        <div class="progress-container" id="progressContainer">
-          <div class="progress-bar"><div class="progress-fill"></div></div>
-          <div style="text-align: center; color: var(--text-light); font-size: 0.9em;">
-            <span class="spinner"></span> Revisando...
-          </div>
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('historial')">Historial</button>
+          <button class="tab" onclick="switchTab('texto')">Texto</button>
+          <button class="tab" onclick="switchTab('descarga')">Descargar</button>
         </div>
 
-        <div class="alert alert-success" id="alertInfo">
-          <i class="fas fa-info-circle"></i>
-          <div>Revisión iterativa con ChatGPT</div>
-        </div>
-      </aside>
-
-      <div class="content" id="contentArea">
-        <div class="metrics">
-          <div class="metric">
-            <div class="metric-label">Iteraciones</div>
-            <div class="metric-value" id="metricIteraciones">-</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Puntaje</div>
-            <div class="metric-value" id="metricPuntaje">-</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Problemas</div>
-            <div class="metric-value" id="metricProblemas">-</div>
-          </div>
+        <div id="historial" class="tab-content active">
+          <div id="historialContent" style="background: #f5f7fa; padding: 15px; border-radius: 8px;"></div>
         </div>
 
-        <div>
-          <div class="tabs">
-            <button class="tab active" onclick="switchTab('historial')">
-              <i class="fas fa-history"></i> Historial
-            </button>
-            <button class="tab" onclick="switchTab('texto')">
-              <i class="fas fa-edit"></i> Texto
-            </button>
-            <button class="tab" onclick="switchTab('descarga')">
-              <i class="fas fa-download"></i> Descargas
-            </button>
-          </div>
+        <div id="texto" class="tab-content">
+          <textarea id="textoFinal" readonly></textarea>
+        </div>
 
-          <div id="historial" class="tab-content active">
-            <div class="historial-container" id="historialContent"></div>
-          </div>
-
-          <div id="texto" class="tab-content">
-            <textarea id="textoFinal" readonly></textarea>
-          </div>
-
-          <div id="descarga" class="tab-content">
-            <div class="download-section">
-              <h3><i class="fas fa-file-export"></i> Descargar</h3>
-              <div class="download-grid">
-                <button onclick="descargarTxt()"><i class="fas fa-file-alt"></i> TXT</button>
-                <button onclick="descargarJSON()"><i class="fas fa-code"></i> JSON</button>
-                <button onclick="descargarMarkdown()"><i class="fas fa-markdown"></i> Markdown</button>
-              </div>
-            </div>
-          </div>
+        <div id="descarga" class="tab-content">
+          <button onclick="descargarTxt()" style="margin-top: 0;">Descargar TXT</button>
+          <button onclick="descargarJSON()">Descargar JSON</button>
+          <button onclick="descargarMarkdown()">Descargar Markdown</button>
         </div>
       </div>
     </div>
 
     <footer>
-      <p><i class="fas fa-graduation-cap"></i> Revisor Académico Q1 | Safety Management | 2024</p>
+      <p>🎓 Revisor Académico Q1 | Safety Management | 2024</p>
     </footer>
   </div>
 
   <script>
     const fileInput = document.getElementById('fileInput');
     const btnRevisar = document.getElementById('btnRevisar');
-    const contentArea = document.getElementById('contentArea');
-    const progressContainer = document.getElementById('progressContainer');
+    const content = document.getElementById('content');
     let datosActuales = null;
 
-    fileInput.addEventListener('change', mostrarArchivo);
-
-    function mostrarArchivo() {
+    fileInput.addEventListener('change', () => {
       const file = fileInput.files[0];
-      if (!file) return;
-
-      document.getElementById('fileName').textContent = file.name;
-      document.getElementById('fileSize').textContent = `${(file.size / 1024).toFixed(2)} KB`;
-      document.getElementById('fileSelected').classList.add('active');
-      btnRevisar.disabled = false;
-    }
-
-    function limpiarArchivo() {
-      fileInput.value = '';
-      document.getElementById('fileSelected').classList.remove('active');
-      btnRevisar.disabled = true;
-      contentArea.classList.remove('active');
-    }
+      if (file) {
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(2) + ' KB';
+        document.getElementById('fileSelected').style.display = 'block';
+        btnRevisar.disabled = false;
+      }
+    });
 
     async function iniciarRevision() {
       const file = fileInput.files[0];
@@ -583,114 +178,73 @@
       const formData = new FormData();
       formData.append('documento', file);
 
+      document.getElementById('progreso').style.display = 'block';
       btnRevisar.disabled = true;
-      progressContainer.classList.add('active');
 
       try {
-        const response = await fetch('/revisar', { method: 'POST', body: formData });
-        const data = await response.json();
+        const resp = await fetch('/revisar', { method: 'POST', body: formData });
+        const data = await resp.json();
 
         if (data.exito) {
           datosActuales = data;
-          mostrarResultados(data);
+          content.classList.add('active');
+          document.getElementById('puntaje').textContent = data.puntaje;
+          document.getElementById('iter').textContent = data.iteraciones;
+
+          const html = data.historial.map((rev, i) => `
+            <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 10px;">
+              <strong>Iteración ${i + 1}</strong> - Puntaje: ${rev.puntaje}/100<br>
+              ${(rev.bloqueadores || []).map(b => `<div style="color: #f5222d;">🚫 ${b.problema}</div>`).join('')}
+              ${(rev.criticos || []).map(c => `<div style="color: #faad14;">⚠️ ${c.problema}</div>`).join('')}
+            </div>
+          `).join('');
+          document.getElementById('historialContent').innerHTML = html || '<p style="color: #13c2c2;">✅ Sin problemas</p>';
+          document.getElementById('textoFinal').value = data.textoFinal;
         } else {
           alert('Error: ' + data.error);
         }
-      } catch (error) {
-        alert('Error: ' + error.message);
+      } catch (err) {
+        alert('Error: ' + err.message);
       } finally {
-        progressContainer.classList.remove('active');
+        document.getElementById('progreso').style.display = 'none';
         btnRevisar.disabled = false;
       }
     }
 
-    function mostrarResultados(data) {
-      contentArea.classList.add('active');
-      
-      const totalProblemas = data.historial.reduce((sum, rev) => 
-        sum + (rev.bloqueadores?.length || 0) + (rev.criticos?.length || 0), 0
-      );
-
-      document.getElementById('metricIteraciones').textContent = data.iteraciones;
-      document.getElementById('metricPuntaje').textContent = `${data.puntaje}/100`;
-      document.getElementById('metricProblemas').textContent = totalProblemas;
-      document.getElementById('textoFinal').value = data.textoFinal;
-
-      const historialHtml = data.historial.map((rev, i) => `
-        <div class="iteration-card">
-          <div class="iteration-header">
-            <span class="iteration-title">Iteración ${i + 1}</span>
-            <span class="iteration-badge">⭐ ${rev.puntaje}/100</span>
-          </div>
-          ${(rev.bloqueadores || []).length > 0 ? `
-            <div style="margin-top: 10px;">
-              <strong style="color: #f5222d;">Bloqueadores:</strong>
-              ${rev.bloqueadores.map(b => `
-                <div class="issue bloqueadora">
-                  <strong>🚫</strong> ${b.problema}
-                  ${b.correccion ? `<br><em style="color: #27ae60;">→ ${b.correccion}</em>` : ''}
-                </div>
-              `).join('')}
-            </div>
-          ` : ''}
-          ${(rev.criticos || []).length > 0 ? `
-            <div style="margin-top: 10px;">
-              <strong style="color: #faad14;">Críticos:</strong>
-              ${rev.criticos.map(c => `
-                <div class="issue critica">
-                  <strong>⚠️</strong> ${c.problema}
-                  ${c.correccion ? `<br><em style="color: #27ae60;">→ ${c.correccion}</em>` : ''}
-                </div>
-              `).join('')}
-            </div>
-          ` : ''}
-        </div>
-      `).join('');
-
-      document.getElementById('historialContent').innerHTML = historialHtml || 
-        '<div style="padding: 20px; text-align: center; color: #13c2c2;">✅ Sin problemas</div>';
-    }
-
-    function switchTab(tabName) {
+    function switchTab(tab) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       event.target.classList.add('active');
-      document.getElementById(tabName).classList.add('active');
+      document.getElementById(tab).classList.add('active');
     }
 
     function descargarTxt() {
-      const texto = document.getElementById('textoFinal').value;
-      const blob = new Blob([texto], { type: 'text/plain' });
-      descargarBlob(blob, 'revision.txt');
+      const blob = new Blob([document.getElementById('textoFinal').value], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'revision.txt';
+      a.click();
     }
 
     function descargarJSON() {
-      const informe = {
-        fecha: new Date().toISOString(),
-        iteraciones: document.getElementById('metricIteraciones').textContent,
-        puntaje: document.getElementById('metricPuntaje').textContent,
-        historial: datosActuales.historial,
-        textoFinal: document.getElementById('textoFinal').value,
-      };
-      const blob = new Blob([JSON.stringify(informe, null, 2)], { type: 'application/json' });
-      descargarBlob(blob, 'revision.json');
+      const blob = new Blob([JSON.stringify(datosActuales, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'revision.json';
+      a.click();
     }
 
     function descargarMarkdown() {
       const texto = document.getElementById('textoFinal').value;
-      const md = `# Revisión Académica Q1\n\n**Iteraciones:** ${document.getElementById('metricIteraciones').textContent}\n**Puntaje:** ${document.getElementById('metricPuntaje').textContent}\n\n---\n\n${texto}`;
+      const md = `# Revisión Académica Q1\n\n**Puntaje:** ${document.getElementById('puntaje').textContent}/100\n**Iteraciones:** ${document.getElementById('iter').textContent}\n\n---\n\n${texto}`;
       const blob = new Blob([md], { type: 'text/markdown' });
-      descargarBlob(blob, 'revision.md');
-    }
-
-    function descargarBlob(blob, filename) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = filename;
+      a.download = 'revision.md';
       a.click();
-      URL.revokeObjectURL(url);
     }
   </script>
 </body>
