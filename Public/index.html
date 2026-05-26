@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Revisor Academico Q1</title>
+<style>
+body { font-family: Arial; margin: 20px; }
+.container { max-width: 800px; margin: 0 auto; }
+input { padding: 8px; width: 300px; }
+button { padding: 8px 16px; background: #667eea; color: white; border: none; cursor: pointer; }
+textarea { width: 100%; height: 300px; margin-top: 20px; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Revisor Academico Q1</h1>
+<p>Safety Management - HRO - Risk Governance</p>
+<input type="file" id="f" accept=".docx,.md,.txt">
+<button onclick="revisar()">Revisar</button>
+<div id="prog" style="display:none;margin-top:10px">Procesando...</div>
+<textarea id="res" readonly></textarea>
+<script>
+function revisar(){
+var file=document.getElementById('f').files[0];
+if(!file){alert('Selecciona un archivo');return;}
+document.getElementById('prog').style.display='block';
+var form=new FormData();
+form.append('documento',file);
+fetch('/revisar',{method:'POST',body:form}).then(r=>r.json()).then(d=>{
+if(d.exito){
+document.getElementById('res').value=d.textoFinal;
+alert('Listo! Puntaje: '+d.puntaje+'/100 - Iteraciones: '+d.iteraciones);
+}else{
+alert('Error: '+d.error);
+}
+document.getElementById('prog').style.display='none';
+}).catch(e=>{
+alert('Error: '+e);
+document.getElementById('prog').style.display='none';
+});
+}
+</script>
+</div>
+</body>
+</html>
