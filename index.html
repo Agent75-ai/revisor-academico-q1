@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Revisor Q1</title>
+</head>
+<body>
+<h1>Revisor Academico Q1</h1>
+<input type="file" id="f">
+<button onclick="s()">Start</button>
+<textarea id="o" style="width:100%;height:400px"></textarea>
+<script>
+async function s(){
+var f=new FormData();
+f.append('documento',document.getElementById('f').files[0]);
+var r=await fetch('/revisar',{method:'POST',body:f});
+var d=await r.json();
+document.getElementById('o').value=d.textoFinal;
+alert('Puntaje: '+d.puntaje+'/100');
+}
+</script>
+</body>
+</html>
