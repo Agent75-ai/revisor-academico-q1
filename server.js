@@ -196,13 +196,14 @@ app.post('/revisar', upload.single('documento'), async (req, res) => {
           encoding: 'utf-8',
           maxBuffer: 10 * 1024 * 1024
         });
-      } catch {
-        textoOriginal = fs.readFileSync(req.file.path, 'utf-8');
+      } catch (err) {
+        console.log('Pandoc error, intentando lectura directa:', err.message);
+        textoOriginal = 'Error extrayendo texto del Word. Por favor sube un archivo .md o .txt';
       }
     } else if (ext === '.md' || ext === '.txt') {
       textoOriginal = fs.readFileSync(req.file.path, 'utf-8');
     } else {
-      return res.json({ exito: false, error: 'Solo .docx, .doc, .md o .txt' });
+      return res.json({ exito: false, error: 'Formato no soportado: ' + ext + '. Usa .docx, .md o .txt' });
     }
 
     let textoActual = textoOriginal;
