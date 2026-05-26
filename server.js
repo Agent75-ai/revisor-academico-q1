@@ -1,29 +1,35 @@
+require('dotenv').config();
+const express = require('express');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+const { chromium } = require('playwright');
+const { Document, Packer, Paragraph } = require('docx');
+
+const app = express();
+const upload = multer({ dest: 'uploads/' });
+app.use(express.json());
+
+let browser = null;
+
+async function iniciarNavegador() {
+  if (browser) return;
+  try {
+    console.log('Iniciando navegador...');
+    browser = await chromium.launch({ headless: false });
+  } catch (e) {
+    console.log('Error navegador:', e.message);
+  }
+}
+
 async function detectarDominios(texto) {
   if (!browser) return ['Safety Management', 'Risk Management'];
-  
   try {
     const page = await browser.newPage();
     await page.goto('https://chat.openai.com', { waitUntil: 'networkidle', timeout: 30000 });
     
-    const prompt = `Analiza este texto academico y IDENTIFICA TODOS LOS DOMINIOS Y CAMPOS DE ESTUDIO QUE ABORDA.
-
-TEXTO:
-${texto.substring(0, 2000)}
-
-Responde SOLO EN JSON VALIDO:
-{
-  "dominios_detectados": [
-    "dominio1",
-    "dominio2"
-  ],
-  "areas_especializacion": [
-    "area1",
-    "area2"
-  ],
-  "conceptos_clave": ["concepto1", "concepto2"]
-}
-
-EJEMPLOS DE DOMINIOS: Safety Management, Risk Governance, System Dynamics, Human Factors, Organizational Behavior, Nuclear Engineering, Reactor Physics, Operations Research, Management Theory, Decision Making, Complex Systems, HRO, etc.`;
+    const textoCorto = texto.substring(0, 1500);
+    const prompt = 'Analiza este texto y lista SOLO los dominios academicos principales (Safety Management, Risk Governance, System Dynamics, etc). Responde SOLO en JSON: {"dominios_detectados": ["dominio1", "dominio2"]}. TEXTO: ' + textoCorto;
 
     const textarea = await page.waitForSelector('textarea', { timeout: 10000 });
     await textarea.click();
@@ -48,7 +54,7 @@ EJEMPLOS DE DOMINIOS: Safety Management, Risk Governance, System Dynamics, Human
       const jsonMatch = respuesta.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const datos = JSON.parse(jsonMatch[0]);
-        return datos.dominios_detectados || ['Safety Management', 'Risk Management'];
+        return datos.dominios_detectados || ['Safety Management'];
       }
     } catch (e) {
       console.log('Error detectando dominios:', e.message);
@@ -56,196 +62,34 @@ EJEMPLOS DE DOMINIOS: Safety Management, Risk Governance, System Dynamics, Human
     
     return ['Safety Management', 'Risk Management'];
   } catch (e) {
-    console.log('Error en detección de dominios:', e.message);
-    return ['Safety Management', 'Risk Management'];
+    console.log('Error:', e.message);
+    return ['Safety Management'];
   }
-}
-
-async function construirPromptExpertoPorDominio(texto, iteracion, dominios) {
-  const dominiosStr = dominios.join(', ');
-  
-  const expertisaPorDominio = {
-    'Safety Management': 'Weick, Roberts, Sutcliffe (HRO), Rasmussen (Dynamic Safety), Wahlström (Systemic Safety Culture)',
-    'Risk Governance': 'Risk frameworks, governance structures, decision-making under uncertainty',
-    'Risk Management': 'Risk assessment, risk control, risk communication',
-    'System Dynamics': 'Feedback loops, stocks & flows, non-linear behavior, system modeling',
-    'System Theory': 'von Bertalanffy, complexity, emergence, feedback loops, requisite variety',
-    'High Reliability Organizations': 'HRO characteristics, mindfulness, resilience, error management',
-    'Human Factors': 'Human error, cognitive psychology, situation awareness, workload management',
-    'Organizational Behavior': 'Organizational learning, culture, communication, decision structures',
-    'Management Theory': 'Management models, organizational structure, leadership, change management',
-    'Nuclear Engineering': 'Reactor design, safety systems, neutronics, thermal-hydraulics',
-    'Nuclear Operations': 'Operational procedures, operational experience, WANO, INPO standards',
-    'Nuclear Safety': 'Defense in depth, safety culture, regulatory requirements, operational experience',
-    'Complex Systems': 'Complexity science, emergence, non-linearity, adaptive systems',
-    'Accident Investigation': 'STAMP, AcciMap, event tree analysis, causal factors',
-    'Decision Making': 'Decision theory, group decision, under uncertainty, bounded rationality',
-    'Operations Research': 'Optimization, modeling, simulation, quantitative methods',
-    'Governance': 'Organizational governance, decision processes, accountability structures'
-  };
-  
-  const expertisaRelevante = dominios
-    .filter(d => expertisaPorDominio[d])
-    .map(d => \`- \${d}: \${expertisaPorDominio[d]}\`)
-    .join('\\n');
-
-  const prompt = \`ERES UN REVISOR EXPERTO Q1 MULTIDOMINIO EXTREMADAMENTE RIGUROSO.
-
-DOMINIOS DETECTADOS EN ESTE PAPER:
-\${dominiosStr}
-
-EXPERTISE REQUERIDA:
-\${expertisaRelevante}
-
-COMO EXPERTO EN ESTOS DOMINIOS:
-1. Conoces profundamente cada campo
-2. Entiendes las intersecciones entre ellos
-3. Puedes identificar inconsistencias cross-domain
-4. Validas rigurosamente en cada área
-5. Detectas cuando falta expertise en algún dominio
-
-ESPECIALISTAS CLAVE A CONSIDERAR (segun dominios):
-- Safety Management: Weick, Roberts, Sutcliffe (HRO); Rasmussen (Dynamic Safety); Wahlström (Systemic Safety)
-- Risk Governance: IRGC, Renn frameworks
-- System Dynamics: Sterman, Forrester, Meadows
-- System Theory: von Bertalanffy, Ashby (Requisite Variety), Laszlo
-- Nuclear: IAEA, NRC, WANO, INPO standards and operational experience
-- Accident Models: Leveson (STAMP), AcciMap, Reason (Swiss Cheese)
-- Complexity: Kauffman, Arthur, Anderson
-- Organizational: Schein (Culture), Argyris (Learning), Senge (Systems Thinking)
-
-RESTRICCION CRITICA: MAXIMO 8500 PALABRAS
-- Si supera 8500: BLOQUEADOR
-- Compacta sin perder rigor en NINGUN dominio
-
-ITERACION: \${iteracion}/5
-
-CRITERIOS DE REVISION EXHAUSTIVOS:
-
-1. LIMITE DE PALABRAS (BLOQUEADOR)
-2. EXPERTISE EN CADA DOMINIO DETECTADO (CRITICO)
-   - Por cada dominio: ¿Tiene profundidad suficiente?
-   - ¿Cita autoridades en ese campo?
-   - ¿Evita simplificaciones peligrosas?
-3. COHERENCIA INTER-DOMINIOS (CRITICO)
-   - ¿Los dominios se integran coherentemente?
-   - ¿Hay contradicciones entre áreas?
-   - ¿Reconoce tensiones legítimas (ej: safety vs production)?
-4. POSICIONAMIENTO VS EXPERTOS (CRITICO)
-   - ¿Se posiciona vs autoridades en cada dominio?
-   - ¿Cita trabajos seminal?
-   - ¿Evita reinventar la rueda?
-5. ORIGINALIDAD WITHIN DOMAINS
-   - ¿Qué es nuevo en cada dominio?
-   - ¿Dónde hay contribution?
-6. PLAUSIBILIDAD MULTI-DOMINIO
-   - ¿Es viable opcionalmente considerando todos los dominios?
-7. ORACIONES AL POSITIVO
-8. ARGUMENTOS DÉBILES REFORMULADOS
-9. COMPACTACION INTELIGENTE (mantén lo fundamental en cada dominio)
-
-DOCUMENTO (iteracion \${iteracion}):
-\${texto.substring(0, 4000)}
-
-RESPONDE SOLO EN JSON VALIDO:
-{
-  "dominios_confirmados": \${JSON.stringify(dominios)},
-  "conteo_palabras": <numero>,
-  "excede_limite": <true|false>,
-  "puntaje": <0-100>,
-  "nivel_aceptacion": "ACEPTAR|REVISION_MENOR|REVISION_MAYOR|RECHAZO",
-  
-  "analisis_por_dominio": [
-    {
-      "dominio": "dominio1",
-      "profundidad": <0-10>,
-      "expertos_clave_no_citados": ["experto1", "experto2"],
-      "problemas": "problemas específicos en este dominio",
-      "fortalezas": "fortalezas en este dominio",
-      "autoridades_deberia_citar": ["autor (year)", "autor (year)"]
-    }
-  ],
-  
-  "coherencia_inter_dominios": {
-    "es_coherente": <true|false>,
-    "tensiones_detectadas": ["tension1", "tension2"],
-    "reconciliacion_sugerida": "cómo mejorar integración"
-  },
-  
-  "bloqueadores": [
-    {"dominio": "...", "tipo": "LIMITE_PALABRAS|EXPERTISE|POSICIONAMIENTO|INCOHERENCIA", 
-     "problema": "...",
-     "impacto": "..."}
-  ],
-  
-  "criticos": [
-    {"dominio": "...", "tipo": "...", "problema": "...", "solucion": "..."}
-  ],
-  
-  "referencias_faltantes_por_dominio": [
-    {"dominio": "...", "autoridad_faltante": "Autor (Year) - obra", "razon": "por que es crítica en este dominio"}
-  ],
-  
-  "argumentos_debiles_por_dominio": [
-    {"dominio": "...", "argumento": "...", "problema": "...", "reformulacion": "..."}
-  ],
-  
-  "compactacion": [
-    {"parrafo": 1, "dominio_afectado": "...", "palabras_original": 150, "palabras_compactada": 80}
-  ],
-  
-  "texto_completamente_mejorado": "<texto < 8500 PALABRAS, con expertise completa en TODOS los dominios detectados>",
-  
-  "resumen_por_dominio": {
-    "dominio1": "que cambio en este dominio",
-    "dominio2": "que cambio en este dominio"
-  },
-  
-  "veredicto_multidominio": "<es Q1 considerando TODOS los dominios? Análisis integrado>",
-  "proximos_pasos": "<mejoras por dominio para alcanzar Q1>"
-}
-
-REQUISITOS IMPRESCINDIBLES:
-- JSON VALIDO
-- Analiza cada dominio con expertise profunda
-- Valida integración entre dominios
-- < 8500 palabras
-- Se implacable en cada área de expertise`;
-
-  return prompt;
 }
 
 async function revisarConChatGPT(texto, iteracion) {
-  if (!browser) {
-    return { 
-      puntaje: 50,
-      dominios: [],
-      bloqueadores: [],
-      criticos: [],
-      sugerencias_reforma: [],
-      referencias_faltantes: [],
-      argumentos_debiles: [],
-      texto_completamente_mejorado: texto
-    };
-  }
-
+  if (!browser) return { puntaje: 50, dominios: [], bloqueadores: [], criticos: [], texto_completamente_mejorado: texto };
+  
   try {
-    console.log(`[Iter ${iteracion}] Detectando dominios...`);
+    console.log('[Iter ' + iteracion + '] Detectando dominios...');
     const dominios = await detectarDominios(texto);
-    console.log(`[Iter ${iteracion}] Dominios detectados: ${dominios.join(', ')}`);
+    console.log('[Iter ' + iteracion + '] Dominios: ' + dominios.join(', '));
     
     const page = await browser.newPage();
     await page.goto('https://chat.openai.com', { waitUntil: 'networkidle', timeout: 30000 });
     
-    const prompt = await construirPromptExpertoPorDominio(texto, iteracion, dominios);
+    const dominiosStr = dominios.join(', ');
+    const textoParaRevision = texto.substring(0, 3500);
+    
+    const prompt = 'ERES REVISOR EXPERTO Q1 MULTIDOMINIO. DOMINIOS: ' + dominiosStr + '. RESTRICCION: MAX 8500 PALABRAS. ITERACION: ' + iteracion + '/5. DOCUMENTO: ' + textoParaRevision + '. Revisa y responde SOLO EN JSON: {"dominios_confirmados": ["d1"], "conteo_palabras": 5000, "excede_limite": false, "puntaje": 75, "nivel_aceptacion": "REVISION_MENOR", "bloqueadores": [], "criticos": [], "texto_completamente_mejorado": "texto mejorado"}';
 
     const textarea = await page.waitForSelector('textarea', { timeout: 15000 });
     await textarea.click();
     await textarea.fill(prompt);
     await page.press('textarea', 'Enter');
     
-    console.log(`[Iter ${iteracion}] Esperando revision multi-dominio...`);
-    await page.waitForTimeout(40000);
+    console.log('[Iter ' + iteracion + '] Esperando respuesta...');
+    await page.waitForTimeout(35000);
     
     let respuesta = '';
     try {
@@ -266,44 +110,153 @@ async function revisarConChatGPT(texto, iteracion) {
         return {
           puntaje: datos.puntaje || 50,
           dominios: datos.dominios_confirmados || dominios,
-          analisis_por_dominio: datos.analisis_por_dominio || [],
-          coherencia_inter_dominios: datos.coherencia_inter_dominios || {},
           bloqueadores: datos.bloqueadores || [],
           criticos: datos.criticos || [],
-          sugerencias_reforma: datos.sugerencias_reforma || [],
-          referencias_faltantes_por_dominio: datos.referencias_faltantes_por_dominio || [],
-          argumentos_debiles: datos.argumentos_debiles || [],
-          texto_completamente_mejorado: datos.texto_completamente_mejorado || '',
-          resumen_por_dominio: datos.resumen_por_dominio || {},
-          veredicto_multidominio: datos.veredicto_multidominio || '',
-          proximos_pasos: datos.proximos_pasos || ''
+          texto_completamente_mejorado: datos.texto_completamente_mejorado || ''
         };
       }
     } catch (e) {
-      console.log(`[Iter ${iteracion}] Error parseando:`, e.message);
+      console.log('[Iter ' + iteracion + '] Error parseando:', e.message);
     }
     
-    return { 
-      puntaje: 50,
-      dominios: dominios,
-      bloqueadores: [],
-      criticos: [],
-      sugerencias_reforma: [],
-      referencias_faltantes_por_dominio: [],
-      argumentos_debiles: [],
-      texto_completamente_mejorado: texto
-    };
+    return { puntaje: 50, dominios: dominios, bloqueadores: [], criticos: [], texto_completamente_mejorado: texto };
   } catch (e) {
-    console.log(`[Iter ${iteracion}] Error:`, e.message);
-    return { 
-      puntaje: 50,
-      dominios: [],
-      bloqueadores: ['Error de conexion'],
-      criticos: [],
-      sugerencias_reforma: [],
-      referencias_faltantes_por_dominio: [],
-      argumentos_debiles: [],
-      texto_completamente_mejorado: texto
-    };
+    console.log('[Iter ' + iteracion + '] Error:', e.message);
+    return { puntaje: 50, dominios: [], bloqueadores: [], criticos: [], texto_completamente_mejorado: texto };
   }
 }
+
+function aplicarMejora(texto, mejora) {
+  if (!mejora || mejora.length < 50) return texto;
+  if (mejora.length > texto.length * 0.95) return mejora;
+  return mejora;
+}
+
+async function crearWordConResultados(textoFinal, historial) {
+  const sections = [];
+  
+  sections.push(new Paragraph({ text: 'REVISION EXPERTA MULTIDOMINIO Q1', heading: 'Heading1', size: 32, bold: true }));
+  sections.push(new Paragraph({ text: 'Analisis experto en cada dominio detectado', italics: true }));
+  sections.push(new Paragraph({ text: '' }));
+  
+  sections.push(new Paragraph({ text: 'RESUMEN', heading: 'Heading2', bold: true }));
+  
+  const puntajeInicial = historial[0]?.puntaje || 0;
+  const puntajeFinal = historial[historial.length - 1]?.puntaje || 0;
+  const mejora = puntajeFinal - puntajeInicial;
+  
+  sections.push(new Paragraph({ text: 'Puntaje Inicial: ' + puntajeInicial + '/100' }));
+  sections.push(new Paragraph({ text: 'Puntaje Final: ' + puntajeFinal + '/100', bold: true }));
+  sections.push(new Paragraph({ text: 'Mejora: +' + mejora + ' puntos' }));
+  
+  sections.push(new Paragraph({ text: '' }));
+  sections.push(new Paragraph({ text: 'ITERACIONES', heading: 'Heading2', bold: true }));
+  
+  historial.forEach((iter, idx) => {
+    sections.push(new Paragraph({ text: 'Iteracion ' + (idx + 1) + ': ' + iter.puntaje + '/100', heading: 'Heading3', bold: true }));
+    if (iter.dominios && iter.dominios.length > 0) {
+      sections.push(new Paragraph({ text: 'Dominios: ' + iter.dominios.join(', '), italics: true }));
+    }
+    if (iter.bloqueadores && iter.bloqueadores.length > 0) {
+      sections.push(new Paragraph({ text: 'Bloqueadores: ' + iter.bloqueadores.length }));
+    }
+  });
+  
+  sections.push(new Paragraph({ text: '' }));
+  sections.push(new Paragraph({ text: 'TEXTO FINAL', heading: 'Heading2', bold: true }));
+  
+  const parrafos = textoFinal.split('\n').filter(p => p.trim());
+  parrafos.forEach(parrafo => {
+    sections.push(new Paragraph({ text: parrafo }));
+  });
+
+  const doc = new Document({ sections: [{ children: sections }] });
+  return await Packer.toBuffer(doc);
+}
+
+const html = '<html><head><meta charset=UTF-8><title>Revisor Q1</title><style>body{font-family:Arial;background:linear-gradient(135deg,#667eea,#764ba2);margin:0;padding:20px}.container{max-width:1000px;margin:0 auto;background:white;padding:40px;border-radius:12px}.h1{color:#667eea;font-size:2em}input{padding:10px;width:100%;margin:10px 0;border:1px solid #ddd;border-radius:4px}button{padding:12px 20px;background:#667eea;color:white;border:none;cursor:pointer;border-radius:4px;margin:10px 5px 10px 0;font-weight:bold}button:disabled{opacity:0.5}textarea{width:100%;height:300px;padding:10px;margin:20px 0;border:1px solid #ddd;border-radius:4px;display:none}textarea.active{display:block}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin:20px 0}.stat{background:#667eea;color:white;padding:20px;text-align:center;border-radius:8px}.stat-value{font-size:2em;font-weight:bold}</style></head><body><div class="container"><h1>Revisor Experto Multidominio Q1</h1><p>Auto-deteccion de dominios y revision experta</p><input type=file id=f accept=".docx,.doc,.md,.txt"><button id=btn onclick="revisar()" disabled>Iniciar 5 Iteraciones</button><div id=prog style="display:none;background:#e8f4f8;padding:15px;margin:20px 0;border-radius:4px">Iteracion: <b id=iter>1</b>/5 | Puntaje: <b id=score>-</b>/100</div><div id=stats style="display:none" class="stats"><div class="stat"><div>Puntaje Inicial</div><div class="stat-value" id=score-inicial>-</div></div><div class="stat"><div>Puntaje Final</div><div class="stat-value" id=score-final>-</div></div><div class="stat"><div>Mejora</div><div class="stat-value" id=mejora>-</div></div></div><div id=download style="display:none;background:linear-gradient(135deg,#13c2c2,#1890ff);color:white;padding:20px;border-radius:8px;margin:20px 0"><h3>Revision Completa</h3><button onclick="descargarWord()" style="background:white;color:#13c2c2;border:none"><b>Descargar Word</b></button><button onclick="descargarTxt()">Descargar Texto</button></div><textarea id=o readonly></textarea></div><script>var file=document.getElementById("f");var btn=document.getElementById("btn");var datos=null;file.onchange=function(){btn.disabled=!file.files[0]};async function revisar(){var f=file.files[0];if(!f){alert("Selecciona archivo");return}document.getElementById("prog").style.display="block";document.getElementById("stats").style.display="none";document.getElementById("download").style.display="none";btn.disabled=true;var form=new FormData();form.append("documento",f);try{var r=await fetch("/revisar",{method:"POST",body:form});var d=await r.json();if(d.exito){datos=d;document.getElementById("score-inicial").textContent=d.puntajeInicial;document.getElementById("score-final").textContent=d.puntajeFinal;var mejora=d.puntajeFinal-d.puntajeInicial;document.getElementById("mejora").textContent=(mejora>=0?"+":"")+mejora;document.getElementById("o").value=d.textoFinal;document.getElementById("o").classList.add("active");document.getElementById("stats").style.display="grid";document.getElementById("download").style.display="block"}else{alert("Error: "+d.error)}}catch(e){alert("Error: "+e)}document.getElementById("prog").style.display="none";btn.disabled=false}function descargarWord(){if(!datos)return;var blob=new Blob([datos.wordBuffer],{type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download="revision_q1.docx";a.click();URL.revokeObjectURL(url)}function descargarTxt(){if(!datos)return;var blob=new Blob([datos.textoFinal],{type:"text/plain"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download="revision_q1.txt";a.click();URL.revokeObjectURL(url)}</script></body></html>';
+
+app.get('/', (req, res) => {
+  res.send(html);
+});
+
+app.post('/revisar', upload.single('documento'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.json({ exito: false, error: 'No archivo' });
+    }
+
+    const ext = path.extname(req.file.path).toLowerCase();
+    let textoOriginal = '';
+
+    if (ext === '.docx' || ext === '.doc') {
+      const { execSync } = require('child_process');
+      try {
+        textoOriginal = execSync('pandoc "' + req.file.path + '" -t plain', {
+          encoding: 'utf-8',
+          maxBuffer: 10 * 1024 * 1024
+        });
+      } catch {
+        textoOriginal = fs.readFileSync(req.file.path, 'utf-8');
+      }
+    } else if (ext === '.md' || ext === '.txt') {
+      textoOriginal = fs.readFileSync(req.file.path, 'utf-8');
+    } else {
+      return res.json({ exito: false, error: 'Solo .docx, .doc, .md o .txt' });
+    }
+
+    let textoActual = textoOriginal;
+    const historial = [];
+    let puntajeFinal = 0;
+
+    console.log('=== INICIANDO REVISION MULTIDOMINIO Q1 ===');
+    await iniciarNavegador();
+
+    for (let i = 1; i <= 5; i++) {
+      console.log('\n>>> ITERACION ' + i + '/5');
+      
+      const revision = await revisarConChatGPT(textoActual, i);
+      
+      puntajeFinal = revision.puntaje;
+      historial.push({
+        iteracion: i,
+        puntaje: revision.puntaje,
+        dominios: revision.dominios,
+        bloqueadores: revision.bloqueadores,
+        criticos: revision.criticos
+      });
+
+      if (revision.texto_completamente_mejorado && revision.texto_completamente_mejorado.length > 100) {
+        textoActual = aplicarMejora(textoActual, revision.texto_completamente_mejorado);
+      }
+
+      console.log('OK Puntaje: ' + revision.puntaje + '/100 | Dominios: ' + revision.dominios.join(', '));
+    }
+
+    const wordBuffer = await crearWordConResultados(textoActual, historial);
+
+    try { fs.unlinkSync(req.file.path); } catch {}
+
+    res.json({
+      exito: true,
+      textoFinal: textoActual,
+      historial: historial,
+      iteraciones: 5,
+      puntajeInicial: historial[0]?.puntaje || 0,
+      puntajeFinal: puntajeFinal,
+      wordBuffer: Array.from(wordBuffer)
+    });
+
+  } catch (error) {
+    console.error('ERROR:', error);
+    res.json({ exito: false, error: error.message });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+
+iniciarNavegador();
+
+app.listen(PORT, () => {
+  console.log('Revisor Multidominio Q1 en linea');
+});
