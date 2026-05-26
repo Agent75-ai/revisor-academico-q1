@@ -1,251 +1,67 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎓 Revisor Académico Q1</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      font-family: Arial, sans-serif; 
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: #262c35;
-      padding: 20px;
-      min-height: 100vh;
-    }
-    .container { max-width: 1200px; margin: 0 auto; }
-    header { 
-      background: white; 
-      padding: 30px; 
-      border-radius: 12px 12px 0 0;
-      border-bottom: 3px solid #667eea;
-    }
-    h1 { color: #667eea; margin-bottom: 10px; }
-    .main { 
-      background: white; 
-      padding: 30px; 
-      display: grid;
-      grid-template-columns: 350px 1fr;
-      gap: 30px;
-    }
-    .sidebar { border-right: 1px solid #e8e8e8; padding-right: 30px; }
-    .dropzone { 
-      border: 2px dashed #667eea; 
-      border-radius: 12px; 
-      padding: 30px; 
-      text-align: center;
-      cursor: pointer;
-      background: #f5f7fa;
-    }
-    button { 
-      width: 100%;
-      padding: 12px;
-      margin-top: 15px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    textarea { 
-      width: 100%; 
-      height: 400px; 
-      padding: 15px; 
-      border: 1px solid #e8e8e8;
-      border-radius: 8px;
-      font-family: monospace;
-    }
-    .content { display: none; }
-    .content.active { display: block; }
-    .metric { 
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      padding: 20px;
-      border-radius: 10px;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .tabs { display: flex; gap: 10px; border-bottom: 2px solid #e8e8e8; margin-bottom: 20px; }
-    .tab { 
-      background: none; 
-      border: none; 
-      padding: 12px; 
-      cursor: pointer;
-      color: #8c8c8c;
-      border-bottom: 3px solid transparent;
-    }
-    .tab.active { 
-      color: #667eea; 
-      border-bottom-color: #667eea;
-    }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    footer { 
-      background: white; 
-      padding: 20px; 
-      text-align: center; 
-      border-radius: 0 0 12px 12px;
-      color: #8c8c8c;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-    @media (max-width: 900px) {
-      .main { grid-template-columns: 1fr; }
-      .sidebar { border-right: none; border-bottom: 1px solid #e8e8e8; padding-right: 0; }
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Revisor Q1</title>
+<style>
+body { font-family: Arial; margin: 0; padding: 20px; background: #f5f7fa; }
+.container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; }
+h1 { color: #667eea; }
+input { padding: 8px; margin: 10px 0; }
+button { padding: 10px 20px; background: #667eea; color: white; border: none; cursor: pointer; border-radius: 4px; }
+button:disabled { opacity: 0.5; }
+textarea { width: 100%; height: 300px; margin-top: 20px; padding: 10px; }
+</style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>🎓 Revisor Académico Q1</h1>
-      <p>Safety Management • HRO • Risk Governance</p>
-    </header>
-
-    <div class="main">
-      <div class="sidebar">
-        <h3>Cargar Documento</h3>
-        <div class="dropzone" onclick="document.getElementById('fileInput').click()">
-          <div style="font-size: 2em; margin-bottom: 10px;">📄</div>
-          <div>Selecciona un archivo</div>
-          <small>Max. 10 MB</small>
-        </div>
-        <input type="file" id="fileInput" accept=".docx,.md,.txt" style="display: none;">
-        <div id="fileSelected" style="background: #e6f7ff; padding: 10px; border-radius: 8px; margin-top: 15px; display: none;">
-          <strong id="fileName"></strong>
-          <small id="fileSize" style="display: block; color: #8c8c8c;"></small>
-        </div>
-        <button id="btnRevisar" onclick="iniciarRevision()" disabled>Iniciar Revisión</button>
-        <div id="progreso" style="display: none; margin-top: 15px; text-align: center;">
-          <div style="color: #667eea; font-weight: 600;">⏳ Revisando...</div>
-        </div>
-      </div>
-
-      <div id="content" class="content">
-        <div class="metric">
-          <div style="font-size: 2em; font-weight: 700;" id="metricPuntaje">-</div>
-          <div style="opacity: 0.9;">Puntaje: <span id="puntaje">-</span>/100 | Iteraciones: <span id="iter">-</span></div>
-        </div>
-
-        <div class="tabs">
-          <button class="tab active" onclick="switchTab('historial')">Historial</button>
-          <button class="tab" onclick="switchTab('texto')">Texto</button>
-          <button class="tab" onclick="switchTab('descarga')">Descargar</button>
-        </div>
-
-        <div id="historial" class="tab-content active">
-          <div id="historialContent" style="background: #f5f7fa; padding: 15px; border-radius: 8px;"></div>
-        </div>
-
-        <div id="texto" class="tab-content">
-          <textarea id="textoFinal" readonly></textarea>
-        </div>
-
-        <div id="descarga" class="tab-content">
-          <button onclick="descargarTxt()" style="margin-top: 0;">Descargar TXT</button>
-          <button onclick="descargarJSON()">Descargar JSON</button>
-          <button onclick="descargarMarkdown()">Descargar Markdown</button>
-        </div>
-      </div>
-    </div>
-
-    <footer>
-      <p>🎓 Revisor Académico Q1 | Safety Management | 2024</p>
-    </footer>
-  </div>
-
-  <script>
-    const fileInput = document.getElementById('fileInput');
-    const btnRevisar = document.getElementById('btnRevisar');
-    const content = document.getElementById('content');
-    let datosActuales = null;
-
-    fileInput.addEventListener('change', () => {
-      const file = fileInput.files[0];
-      if (file) {
-        document.getElementById('fileName').textContent = file.name;
-        document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(2) + ' KB';
-        document.getElementById('fileSelected').style.display = 'block';
-        btnRevisar.disabled = false;
-      }
-    });
-
-    async function iniciarRevision() {
-      const file = fileInput.files[0];
-      if (!file) return;
-
-      const formData = new FormData();
-      formData.append('documento', file);
-
-      document.getElementById('progreso').style.display = 'block';
-      btnRevisar.disabled = true;
-
-      try {
-        const resp = await fetch('/revisar', { method: 'POST', body: formData });
-        const data = await resp.json();
-
-        if (data.exito) {
-          datosActuales = data;
-          content.classList.add('active');
-          document.getElementById('puntaje').textContent = data.puntaje;
-          document.getElementById('iter').textContent = data.iteraciones;
-
-          const html = data.historial.map((rev, i) => `
-            <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 10px;">
-              <strong>Iteración ${i + 1}</strong> - Puntaje: ${rev.puntaje}/100<br>
-              ${(rev.bloqueadores || []).map(b => `<div style="color: #f5222d;">🚫 ${b.problema}</div>`).join('')}
-              ${(rev.criticos || []).map(c => `<div style="color: #faad14;">⚠️ ${c.problema}</div>`).join('')}
-            </div>
-          `).join('');
-          document.getElementById('historialContent').innerHTML = html || '<p style="color: #13c2c2;">✅ Sin problemas</p>';
-          document.getElementById('textoFinal').value = data.textoFinal;
-        } else {
-          alert('Error: ' + data.error);
-        }
-      } catch (err) {
-        alert('Error: ' + err.message);
-      } finally {
-        document.getElementById('progreso').style.display = 'none';
-        btnRevisar.disabled = false;
-      }
-    }
-
-    function switchTab(tab) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      event.target.classList.add('active');
-      document.getElementById(tab).classList.add('active');
-    }
-
-    function descargarTxt() {
-      const blob = new Blob([document.getElementById('textoFinal').value], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'revision.txt';
-      a.click();
-    }
-
-    function descargarJSON() {
-      const blob = new Blob([JSON.stringify(datosActuales, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'revision.json';
-      a.click();
-    }
-
-    function descargarMarkdown() {
-      const texto = document.getElementById('textoFinal').value;
-      const md = `# Revisión Académica Q1\n\n**Puntaje:** ${document.getElementById('puntaje').textContent}/100\n**Iteraciones:** ${document.getElementById('iter').textContent}\n\n---\n\n${texto}`;
-      const blob = new Blob([md], { type: 'text/markdown' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'revision.md';
-      a.click();
-    }
-  </script>
+<div class="container">
+<h1>Revisor Academico Q1</h1>
+<p>Safety Management - HRO - Risk Governance</p>
+<input type="file" id="file" accept=".docx,.md,.txt">
+<button id="btn" onclick="revisar()" disabled>Iniciar</button>
+<div id="progress" style="display:none">Procesando...</div>
+<div id="results" style="display:none">
+<p>Iteraciones: <b id="iter">-</b> | Puntaje: <b id="score">-</b>/100</p>
+<div id="history"></div>
+<textarea id="text" readonly></textarea>
+<button onclick="download()">Descargar</button>
+</div>
+</div>
+<script>
+var file = document.getElementById('file');
+var btn = document.getElementById('btn');
+var datos = null;
+file.onchange = function() { btn.disabled = !file.files[0]; };
+async function revisar() {
+var form = new FormData();
+form.append('documento', file.files[0]);
+document.getElementById('progress').style.display = 'block';
+btn.disabled = true;
+try {
+var res = await fetch('/revisar', {method: 'POST', body: form});
+var data = await res.json();
+if (data.exito) {
+datos = data;
+document.getElementById('results').style.display = 'block';
+document.getElementById('iter').textContent = data.iteraciones;
+document.getElementById('score').textContent = data.puntaje;
+document.getElementById('text').value = data.textoFinal;
+document.getElementById('history').innerHTML = data.historial.length + ' iteraciones procesadas';
+}
+} catch (e) {
+alert('Error: ' + e);
+}
+document.getElementById('progress').style.display = 'none';
+btn.disabled = false;
+}
+function download() {
+var blob = new Blob([document.getElementById('text').value], {type: 'text/plain'});
+var url = URL.createObjectURL(blob);
+var a = document.createElement('a');
+a.href = url;
+a.download = 'revision.txt';
+a.click();
+}
+</script>
 </body>
 </html>
